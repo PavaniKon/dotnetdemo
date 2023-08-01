@@ -1,59 +1,55 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:  walmartpayment-dev
-  namespace: walmartdev
+  name: docker
+  namespace: mynamespace
   labels:
-    app:  walmartpayment-dev
+    app: myapp
 spec:
+  replicas: 2
   selector:
     matchLabels:
-      app: walmartpayment-dev
-  replicas: 1
+      app: myapp
   strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
     type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
   template:
     metadata:
       labels:
-        app:  walmartpayment-dev
+        app: myapp
     spec:
-      # initContainers:
-        # Init containers are exactly like regular containers, except:
-          # - Init containers always run to completion.
-          # - Each init container must complete successfully before the next one starts.
+      serviceAccountName: default
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: user
+                  operator: In
+                  values:
+                    - pavani
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - myapp
+              topologyKey: "kubernetes.io/hostname"
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - myapp
+              topologyKey: "kubernetes.io/hostname"
       containers:
-      - name:  walmartpayment-dev
-        image:  bermtecacrshared.azurecr.io/bermtecpayment:latest
-        resources:
-          requests:
-            cpu:  100m
-            memory: 300Mi
-          limits:
-            cpu: 200m
-            memory: 300Mi
-        livenessProbe:
-          exec:
-            command:
-            - ls
-          initialDelaySeconds: 5
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 3
-          periodSeconds: 10
-        readinessProbe:
-          exec:
-            command:
-            - ls
-          initialDelaySeconds: 5
-          timeoutSeconds: 2
-          successThreshold: 1
-          failureThreshold: 3
-          periodSeconds: 10
+      - name: dockerdep-10-app
+        image: pknnd/dotnetdemo-app
         ports:
-        - containerPort:  80
-          name:  walmartdev
-        imagePullPolicy: Always
-      restartPolicy: Always
+        - containerPort: 80
