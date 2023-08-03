@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: pavanik 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pavanik
+  template:
+    metadata:
+      labels:
+        app: pavanik 
+    spec:
+      containers:
+        - name: pavanik 
+          image: acrpavani.azurecr.io/pavanik
+          ports:
+          - containerPort: 8080
